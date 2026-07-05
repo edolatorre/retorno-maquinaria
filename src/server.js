@@ -24,18 +24,29 @@ const adminDir = path.join(__dirname, '..', 'public', 'admin');
 const siteDir = path.join(__dirname, '..', 'public', 'site');
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 
-function serveStaticDir(rootDir) {
+function serveStaticDir(rootDir, { spaFallback = false } = {}) {
   const root = path.resolve(rootDir);
-  return (req, res) => {
-    let rel = decodeURIComponent(req.path.replace(/^\//, ''));
-    if (!rel) rel = 'index.html';
-    const filePath = path.resolve(root, rel);
-    if (!filePath.startsWith(root + path.sep) && filePath !== root) {
-      return res.status(403).type('text/plain').send('Forbidden');
-    }
+
+  const trySend = (res, candidate) => {
+    const filePath = path.resolve(root, candidate);
+    if (!filePath.startsWith(root + path.sep) && filePath !== root) return false;
     if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-      return res.sendFile(filePath);
+      res.sendFile(filePath);
+      return true;
     }
+    return false;
+  };
+
+  return (req, res) => {
+    // Inside app.use('/mount', …), req.path is mount-relative (e.g. /index.html).
+    // req.url is also mount-relative; use it as a fallback for edge proxies.
+    let rel = decodeURIComponent((req.path || req.url || '/').split('?')[0].replace(/^\//, ''));
+    if (!rel) rel = 'index.html';
+
+    if (trySend(res, rel)) return;
+    if (!path.extname(rel) && trySend(res, `${rel}.html`)) return;
+    if (spaFallback && trySend(res, 'index.html')) return;
+
     res.status(404).type('text/plain').send('Not Found');
   };
 }
@@ -66,10 +77,10 @@ app.use('/admin', serveStaticDir(adminDir));
 
 app.use((req, res, next) => {
   if (!isAppSubdomain(req) || req.path.startsWith('/api') || req.path.startsWith('/admin')) return next();
-  return serveStaticDir(appDir)(req, res);
+  return serveStaticDir(appDir, { spaFallback: true })(req, res);
 });
 
-app.use('/app', serveStaticDir(appDir));
+app.use('/app', serveStaticDir(appDir, { spaFallback: true }));
 app.use(express.static(siteDir, { index: 'index.html' }));
 
 startAutoConfirmJob();
