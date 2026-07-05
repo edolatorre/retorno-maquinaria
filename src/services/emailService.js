@@ -6,7 +6,6 @@ let transporter = null;
 function getTransporter() {
   if (transporter) return transporter;
   if (!config.smtp.host || !config.smtp.user) return null;
-
   transporter = nodemailer.createTransport({
     host: config.smtp.host,
     port: config.smtp.port,
@@ -22,61 +21,108 @@ function formatCLP(val) {
 
 function formatDate(dateStr) {
   if (!dateStr) return '—';
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('es-CL', {
+  return new Date(`${dateStr}T12:00:00`).toLocaleDateString('es-CL', {
     day: '2-digit', month: 'long', year: 'numeric'
   });
 }
 
 async function sendMail({ to, subject, html, text }) {
   const transport = getTransporter();
-
   if (!transport) {
-    console.log('[email] SMTP no configurado — simulando envío:');
-    console.log(`  Para: ${to}`);
-    console.log(`  Asunto: ${subject}`);
-    console.log(`  ${text || html}`);
+    console.log('[email] Simulado →', to, '|', subject);
+    if (text) console.log(' ', text.slice(0, 200));
     return { simulated: true };
   }
+  return transport.sendMail({ from: config.smtp.from, to, subject, html, text: text || html.replace(/<[^>]+>/g, '') });
+}
 
-  const info = await transport.sendMail({
-    from: config.smtp.from,
-    to,
-    subject,
-    html,
-    text: text || html.replace(/<[^>]+>/g, '')
-  });
-
-  console.log(`[email] Enviado a ${to}: ${info.messageId}`);
-  return info;
+function solicitudUrl(id) {
+  return `${config.appUrl}/solicitud.html?id=${id}`;
 }
 
 async function notifyNuevaOferta({ cliente, solicitud, oferta, transportista }) {
-  const appUrl = config.appUrl;
-  const solicitudUrl = `${appUrl}/solicitud.html?id=${solicitud.id}`;
-
-  const subject = `Nueva oferta para tu ${solicitud.tipo_maquina} — Retorno Maquinaria`;
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#1a2332;">
-      <h2 style="color:#f59e0b;">🚜 Nueva oferta recibida</h2>
-      <p>Hola <strong>${cliente.nombre}</strong>,</p>
-      <p>Recibiste una nueva oferta para transportar tu maquinaria:</p>
-      <table style="width:100%;border-collapse:collapse;margin:1rem 0;">
-        <tr><td style="padding:8px 0;color:#666;">Máquina</td><td><strong>${solicitud.tipo_maquina} ${solicitud.marca} ${solicitud.modelo}</strong></td></tr>
-        <tr><td style="padding:8px 0;color:#666;">Ruta</td><td>${solicitud.origen} → ${solicitud.destino}</td></tr>
-        <tr><td style="padding:8px 0;color:#666;">Transportista</td><td>${transportista.nombre}${transportista.empresa ? ` (${transportista.empresa})` : ''}</td></tr>
-        <tr><td style="padding:8px 0;color:#666;">Valor</td><td><strong style="color:#f59e0b;font-size:1.2em;">${formatCLP(oferta.valor)}</strong></td></tr>
-        <tr><td style="padding:8px 0;color:#666;">Fecha carga</td><td>${formatDate(oferta.fecha_carga)}</td></tr>
-        <tr><td style="padding:8px 0;color:#666;">Fecha entrega</td><td>${formatDate(oferta.fecha_entrega)}</td></tr>
-        ${oferta.comentarios ? `<tr><td style="padding:8px 0;color:#666;">Comentarios</td><td>${oferta.comentarios}</td></tr>` : ''}
-      </table>
-      <a href="${solicitudUrl}" style="display:inline-block;background:#f59e0b;color:#000;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">Ver oferta en la plataforma</a>
-      <p style="color:#999;font-size:12px;margin-top:2rem;">Retorno Maquinaria — app.retorno.cl</p>
-    </div>
-  `;
-
-  const text = `Nueva oferta de ${transportista.nombre}: ${formatCLP(oferta.valor)} para ${solicitud.tipo_maquina} ${solicitud.marca} ${solicitud.modelo}. Ver en ${solicitudUrl}`;
-
-  return sendMail({ to: cliente.email, subject, html, text });
+  return sendMail({
+    to: cliente.email,
+    subject: `Nueva oferta — ${solicitud.tipo_maquina} ${solicitud.marca}`,
+    html: `<p>Hola ${cliente.nombre}, recibiste una oferta de <strong>${transportista.nombre}</strong> por <strong>${formatCLP(oferta.valor)}</strong>.</p><p><a href="${solicitudUrl(solicitud.id)}">Ver solicitud</a></p>`,
+    text: `Nueva oferta de ${transportista.nombre}: ${formatCLP(oferta.valor)}`
+  });
 }
 
-module.exports = { sendMail, notifyNuevaOferta };
+async function notifyOfertaSeleccionada({ cliente, transportista, solicitud, oferta }) {
+  const contactoCliente = `${cliente.nombre} · ${cliente.email} · ${cliente.telefono || '—'} · ${cliente.empresa || ''}`;
+  const contactoTransportista = `${transportista.nombre} · ${transportista.email} · ${transportista.telefono || '—'} · ${transportista.empresa || ''}`;
+
+  await sendMail({
+    to: cliente.email,
+    subject: `Oferta seleccionada — realiza el pago`,
+    html: `<p>Seleccionaste la oferta de <strong>${transportista.nombre}</strong> (${formatCLP(oferta.valor)}).</p>
+      <p><strong>Contacto transportista:</strong> ${contactoTransportista}</p>
+      <p>Realiza el pago para confirmar el traslado: <a href="${solicitudUrl(solicitud.id)}">Pagar ahora</a></p>`,
+    text: `Contacto transportista: ${contactoTransportista}. Paga en ${solicitudUrl(solicitud.id)}`
+  });
+
+  await sendMail({
+    to: transportista.email,
+    subject: `¡Te eligieron! — ${solicitud.tipo_maquina} ${solicitud.marca}`,
+    html: `<p>El cliente <strong>${cliente.nombre}</strong> seleccionó tu oferta.</p>
+      <p><strong>Contacto cliente:</strong> ${contactoCliente}</p>
+      <p>El traslado se confirma cuando el cliente complete el pago.</p>`,
+    text: `Contacto cliente: ${contactoCliente}`
+  });
+}
+
+async function notifyPagoRecibido({ cliente, transportista, solicitud, monto }) {
+  await sendMail({
+    to: cliente.email,
+    subject: `Pago confirmado — traslado autorizado`,
+    html: `<p>Tu pago de <strong>${formatCLP(monto)}</strong> fue recibido. El transportista puede iniciar el retiro.</p>`
+  });
+  await sendMail({
+    to: transportista.email,
+    subject: `Pago recibido — puedes retirar la máquina`,
+    html: `<p>El cliente pagó <strong>${formatCLP(monto)}</strong>. Ingresa a la plataforma e inicia el reporte de retiro.</p>
+      <p><a href="${solicitudUrl(solicitud.id)}">Ir a la solicitud</a></p>`
+  });
+}
+
+async function notifyReporteRetiro({ cliente, solicitud, reporte, fotosCount }) {
+  return sendMail({
+    to: cliente.email,
+    subject: `Reporte de retiro subido — ${solicitud.tipo_maquina}`,
+    html: `<p>El transportista inició el retiro y subió un reporte con <strong>${fotosCount} foto(s)</strong>.</p>
+      ${reporte.detalles ? `<p><strong>Detalles:</strong> ${reporte.detalles}</p>` : ''}
+      ${reporte.comentarios ? `<p><strong>Comentarios:</strong> ${reporte.comentarios}</p>` : ''}
+      <p><a href="${solicitudUrl(solicitud.id)}">Ver reporte</a></p>`,
+    text: `Reporte de retiro subido con ${fotosCount} fotos.`
+  });
+}
+
+async function notifyReporteEntrega({ cliente, solicitud, reporte, autoConfirmAt }) {
+  return sendMail({
+    to: cliente.email,
+    subject: `Reporte de entrega — confirma recepción en 24h`,
+    html: `<p>Se registró la entrega de tu maquinaria.</p>
+      <p><strong>Recibió:</strong> ${reporte.receptor_nombre} (${reporte.receptor_rut || '—'})</p>
+      <p>Tienes <strong>24 horas</strong> para confirmar el recibo. Si no confirmas antes del ${formatDate(autoConfirmAt?.slice(0, 10))}, el pago se liberará automáticamente al transportista.</p>
+      <p><a href="${solicitudUrl(solicitud.id)}">Confirmar recepción</a></p>`
+  });
+}
+
+async function notifyEntregaConfirmada({ transportista, solicitud, auto }) {
+  return sendMail({
+    to: transportista.email,
+    subject: auto ? `Pago liberado automáticamente` : `Entrega confirmada — pago liberado`,
+    html: `<p>El traslado #${solicitud.id} fue completado${auto ? ' (confirmación automática tras 24h)' : ''}. El pago fue liberado a tu favor.</p>`
+  });
+}
+
+module.exports = {
+  sendMail,
+  notifyNuevaOferta,
+  notifyOfertaSeleccionada,
+  notifyPagoRecibido,
+  notifyReporteRetiro,
+  notifyReporteEntrega,
+  notifyEntregaConfirmada
+};

@@ -71,17 +71,23 @@ function formatMoney(val) {
 
 function statusLabel(estado) {
   const labels = {
-    abierta: 'Abierta',
-    en_oferta: 'Con ofertas',
-    asignada: 'Asignada',
-    completada: 'Completada',
-    cancelada: 'Cancelada',
-    pendiente: 'Pendiente',
-    aceptada: 'Aceptada',
-    rechazada: 'Rechazada'
+    abierta: 'Abierta', en_oferta: 'Con ofertas', oferta_seleccionada: 'Oferta seleccionada',
+    pago_pendiente: 'Pago pendiente', pago_retenido: 'Pago retenido', en_retiro: 'En retiro',
+    en_transito: 'En tránsito', entrega_reportada: 'Entrega reportada', completada: 'Completada',
+    cancelada: 'Cancelada', pendiente: 'Pendiente', aceptada: 'Aceptada', rechazada: 'Rechazada',
+    aprobado: 'Aprobado', retenido: 'Retenido', liberado: 'Liberado', reembolsado: 'Reembolsado',
+    asignada: 'Asignada', emitida: 'Emitida'
   };
   return labels[estado] || estado;
 }
+
+const ESTADOS_FILTRO = [
+  { v: 'todas', l: 'Todos los estados' },
+  { v: 'abierta', l: 'Abierta' }, { v: 'en_oferta', l: 'Con ofertas' },
+  { v: 'oferta_seleccionada', l: 'Oferta seleccionada' }, { v: 'pago_pendiente', l: 'Pago pendiente' },
+  { v: 'pago_retenido', l: 'Pago retenido' }, { v: 'en_transito', l: 'En tránsito' },
+  { v: 'entrega_reportada', l: 'Entrega reportada' }, { v: 'completada', l: 'Completada' }
+];
 
 function initSidebar(activePage) {
   const user = getUser();
@@ -216,158 +222,126 @@ document.addEventListener('DOMContentLoaded', () => {
   if (dashboard) {
     if (!requireAuth()) return;
     initSidebar('dashboard');
+    setupDashboardFilters();
     loadDashboard();
   }
+
+  if (document.getElementById('pagos-page')) {
+    if (!requireAuth()) return;
+    initSidebar('pagos');
+    loadPagos();
+  }
+
+  if (document.getElementById('facturacion-page')) {
+    if (!requireAuth()) return;
+    initSidebar('facturacion');
+    loadFacturacion();
+  }
 });
+
+function setupDashboardFilters() {
+  const sel = document.getElementById('filtro-estado');
+  if (!sel) return;
+  sel.innerHTML = ESTADOS_FILTRO.map(e => `<option value="${e.v}">${e.l}</option>`).join('');
+  sel.addEventListener('change', loadDashboard);
+  document.getElementById('filtro-vista')?.addEventListener('change', loadDashboard);
+}
 
 async function loadDashboard() {
   const user = getUser();
   const tbody = document.getElementById('solicitudes-body');
   const emptyEl = document.getElementById('empty-state');
+  const thead = document.getElementById('table-head');
+  const estado = document.getElementById('filtro-estado')?.value || 'todas';
 
   try {
     if (user.rol === 'cliente') {
-      const { solicitudes } = await api('/solicitudes/mis-solicitudes');
+      const { solicitudes } = await api(`/solicitudes/mis-solicitudes?estado=${estado}`);
       document.getElementById('stat-total').textContent = solicitudes.length;
-      document.getElementById('stat-abiertas').textContent = solicitudes.filter(s => s.estado === 'abierta' || s.estado === 'en_oferta').length;
+      document.getElementById('stat-abiertas').textContent = solicitudes.filter(s => !['completada', 'cancelada'].includes(s.estado)).length;
       document.getElementById('stat-ofertas').textContent = solicitudes.reduce((sum, s) => sum + (s.num_ofertas || 0), 0);
-
-      if (solicitudes.length === 0) {
-        emptyEl.style.display = 'block';
-        tbody.innerHTML = '';
-        return;
-      }
-      emptyEl.style.display = 'none';
-      tbody.innerHTML = solicitudes.map(s => `
-        <tr>
-          <td><strong>${s.tipo_maquina}</strong><br><small style="color:var(--muted)">${s.marca} ${s.modelo}</small></td>
-          <td>${s.origen} → ${s.destino}</td>
-          <td>${formatDate(s.fecha_retiro)}</td>
-          <td>${s.num_ofertas || 0}</td>
-          <td><span class="status-badge status-${s.estado}">${statusLabel(s.estado)}</span></td>
-          <td><a href="${appPath(`/solicitud.html?id=${s.id}`)}" class="btn btn-outline btn-sm">Ver</a></td>
-        </tr>
-      `).join('');
+      thead.innerHTML = '<tr><th>Maquinaria</th><th>Ruta</th><th>Retiro</th><th>Ofertas</th><th>Estado</th><th></th></tr>';
+      renderRows(solicitudes, tbody, emptyEl, s => `
+        <tr><td><strong>${s.tipo_maquina}</strong><br><small style="color:var(--muted)">${s.marca} ${s.modelo}</small></td>
+        <td>${s.origen} → ${s.destino}</td><td>${formatDate(s.fecha_retiro)}</td><td>${s.num_ofertas || 0}</td>
+        <td><span class="status-badge status-${s.estado}">${statusLabel(s.estado)}</span></td>
+        <td><a href="${appPath(`/solicitud.html?id=${s.id}`)}" class="btn btn-outline btn-sm">Ver</a></td></tr>`);
     } else {
-      const { solicitudes } = await api('/solicitudes/disponibles');
+      const vista = document.getElementById('filtro-vista')?.value || 'disponibles';
+      const endpoint = vista === 'asignadas' ? `/solicitudes/asignadas?estado=${estado}` : '/solicitudes/disponibles';
+      const { solicitudes } = await api(endpoint);
       document.getElementById('stat-total').textContent = solicitudes.length;
-      document.getElementById('stat-abiertas').textContent = solicitudes.filter(s => !s.ya_oferte).length;
-      document.getElementById('stat-ofertas').textContent = solicitudes.filter(s => s.ya_oferte).length;
-
-      if (solicitudes.length === 0) {
-        emptyEl.style.display = 'block';
-        tbody.innerHTML = '';
-        return;
-      }
-      emptyEl.style.display = 'none';
-      tbody.innerHTML = solicitudes.map(s => `
-        <tr>
-          <td><strong>${s.tipo_maquina}</strong><br><small style="color:var(--muted)">${s.marca} ${s.modelo} · ${s.peso}</small></td>
-          <td>${s.origen} → ${s.destino}</td>
-          <td>${formatDate(s.fecha_retiro)}</td>
-          <td>${s.cliente_empresa || s.cliente_nombre}</td>
-          <td>${s.ya_oferte ? '<span class="status-badge status-asignada">Ofertaste</span>' : '<span class="status-badge status-abierta">Disponible</span>'}</td>
-          <td><a href="${appPath(`/solicitud.html?id=${s.id}`)}" class="btn btn-outline btn-sm">${s.ya_oferte ? 'Ver' : 'Ofertar'}</a></td>
-        </tr>
-      `).join('');
+      document.getElementById('stat-abiertas').textContent = solicitudes.filter(s => vista === 'disponibles' ? !s.ya_oferte : s.estado !== 'completada').length;
+      document.getElementById('stat-ofertas').textContent = solicitudes.length;
+      thead.innerHTML = vista === 'asignadas'
+        ? '<tr><th>Maquinaria</th><th>Cliente</th><th>Ruta</th><th>Pago</th><th>Estado</th><th></th></tr>'
+        : '<tr><th>Maquinaria</th><th>Ruta</th><th>Retiro</th><th>Cliente</th><th></th><th></th></tr>';
+      renderRows(solicitudes, tbody, emptyEl, s => vista === 'asignadas' ? `
+        <tr><td><strong>${s.tipo_maquina}</strong><br><small>${s.marca} ${s.modelo}</small></td>
+        <td>${s.cliente_nombre}</td><td>${s.origen} → ${s.destino}</td>
+        <td>${s.pago_estado ? statusLabel(s.pago_estado) : '—'}</td>
+        <td><span class="status-badge status-${s.estado}">${statusLabel(s.estado)}</span></td>
+        <td><a href="${appPath(`/solicitud.html?id=${s.id}`)}" class="btn btn-outline btn-sm">Gestionar</a></td></tr>` : `
+        <tr><td><strong>${s.tipo_maquina}</strong><br><small>${s.marca} ${s.modelo}</small></td>
+        <td>${s.origen} → ${s.destino}</td><td>${formatDate(s.fecha_retiro)}</td><td>${s.cliente_empresa || s.cliente_nombre}</td>
+        <td>${s.ya_oferte ? 'Ofertaste' : 'Disponible'}</td>
+        <td><a href="${appPath(`/solicitud.html?id=${s.id}`)}" class="btn btn-outline btn-sm">${s.ya_oferte ? 'Ver' : 'Ofertar'}</a></td></tr>`);
     }
   } catch (err) {
     if (err.message.includes('autorizado') || err.message.includes('Token')) {
-      clearAuth();
-      window.location.href = appPath('/');
+      clearAuth(); window.location.href = appPath('/');
     }
   }
 }
 
-async function loadSolicitudDetail() {
-  if (!requireAuth()) return;
-  initSidebar('dashboard');
-
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
-  if (!id) { window.location.href = appPath('/dashboard.html'); return; }
-
-  const user = getUser();
-  const detailEl = document.getElementById('solicitud-detail');
-  const ofertasEl = document.getElementById('ofertas-section');
-  const ofertaForm = document.getElementById('oferta-form');
-
-  try {
-    const { solicitud, ofertas } = await api(`/solicitudes/${id}`);
-
-    detailEl.innerHTML = `
-      <div class="form-card">
-        <h2>${solicitud.tipo_maquina} — ${solicitud.marca} ${solicitud.modelo}</h2>
-        <p>Solicitud #${solicitud.id} · <span class="status-badge status-${solicitud.estado}">${statusLabel(solicitud.estado)}</span></p>
-        <div class="form-section">
-          <h3>Maquinaria</h3>
-          <p><strong>Peso:</strong> ${solicitud.peso}</p>
-          <p><strong>Dimensiones:</strong> ${solicitud.dimensiones}</p>
-        </div>
-        <div class="form-section">
-          <h3>Traslado</h3>
-          <p><strong>Origen:</strong> ${solicitud.origen}</p>
-          <p><strong>Destino:</strong> ${solicitud.destino}</p>
-          <p><strong>Fecha retiro:</strong> ${formatDate(solicitud.fecha_retiro)}</p>
-        </div>
-        ${solicitud.comentarios ? `<div class="form-section"><h3>Comentarios</h3><p>${solicitud.comentarios}</p></div>` : ''}
-      </div>
-    `;
-
-    if (user.rol === 'cliente') {
-      ofertasEl.style.display = 'block';
-      if (ofertas.length === 0) {
-        ofertasEl.innerHTML = '<div class="empty-state"><p>Aún no hay ofertas. Recibirás un correo cuando llegue una nueva.</p></div>';
-      } else {
-        ofertasEl.innerHTML = `
-          <div class="table-card" style="margin-top:1.5rem;">
-            <div class="table-header"><h2>Ofertas recibidas (${ofertas.length})</h2></div>
-            <table>
-              <thead><tr><th>Transportista</th><th>Valor</th><th>Carga</th><th>Entrega</th><th>Comentarios</th></tr></thead>
-              <tbody>
-                ${ofertas.map(o => `
-                  <tr>
-                    <td><strong>${o.transportista_nombre}</strong>${o.transportista_empresa ? `<br><small style="color:var(--muted)">${o.transportista_empresa}</small>` : ''}</td>
-                    <td><strong style="color:var(--accent)">${formatMoney(o.valor)}</strong></td>
-                    <td>${formatDate(o.fecha_carga)}</td>
-                    <td>${formatDate(o.fecha_entrega)}</td>
-                    <td>${o.comentarios || '—'}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        `;
-      }
-    }
-
-    if (user.rol === 'transportista' && ofertaForm) {
-      ofertaForm.style.display = 'block';
-      ofertaForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        const alertEl = document.getElementById('alert');
-        try {
-          await api(`/solicitudes/${id}/ofertas`, {
-            method: 'POST',
-            body: JSON.stringify({
-              valor: ofertaForm.valor.value,
-              fecha_carga: ofertaForm.fecha_carga.value,
-              fecha_entrega: ofertaForm.fecha_entrega.value,
-              comentarios: ofertaForm.comentarios.value
-            })
-          });
-          showAlert(alertEl, '¡Oferta enviada! El cliente recibirá un correo de notificación.', 'success');
-          setTimeout(() => window.location.reload(), 1500);
-        } catch (err) {
-          showAlert(alertEl, err.message);
-        }
-      });
-    }
-  } catch (err) {
-    detailEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
-  }
+function renderRows(items, tbody, emptyEl, tpl) {
+  if (!items.length) { emptyEl.style.display = 'block'; tbody.innerHTML = ''; return; }
+  emptyEl.style.display = 'none';
+  tbody.innerHTML = items.map(tpl).join('');
 }
 
-if (document.getElementById('solicitud-detail')) {
-  document.addEventListener('DOMContentLoaded', loadSolicitudDetail);
+async function loadPagos() {
+  const { pagos } = await api('/pagos/mis-pagos');
+  const tbody = document.getElementById('pagos-body');
+  const empty = document.getElementById('empty-pagos');
+  if (!pagos.length) { empty.style.display = 'block'; tbody.innerHTML = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = pagos.map(p => `<tr>
+    <td><strong>${p.tipo_maquina}</strong> ${p.marca}</td>
+    <td>${p.origen} → ${p.destino}</td>
+    <td><strong style="color:var(--accent)">${formatMoney(p.monto)}</strong></td>
+    <td><span class="status-badge status-${p.estado}">${statusLabel(p.estado)}</span></td>
+    <td><span class="status-badge status-${p.solicitud_estado}">${statusLabel(p.solicitud_estado)}</span></td>
+    <td><a href="${appPath(`/solicitud.html?id=${p.solicitud_id}`)}" class="btn btn-outline btn-sm">Ver</a></td>
+  </tr>`).join('');
 }
+
+async function loadFacturacion() {
+  const { facturas } = await api('/facturas');
+  const tbody = document.getElementById('facturas-body');
+  const empty = document.getElementById('empty-facturas');
+  if (!facturas.length) { empty.style.display = 'block'; tbody.innerHTML = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = facturas.map(f => `<tr>
+    <td><strong>${f.numero}</strong></td>
+    <td>${f.tipo_maquina} ${f.marca}</td>
+    <td>${formatMoney(f.monto)}</td>
+    <td><span class="status-badge status-${f.estado}">${statusLabel(f.estado)}</span></td>
+    <td>${formatDate(f.created_at?.slice(0, 10))}</td>
+    <td><button class="btn btn-outline btn-sm" onclick="verFactura(${f.id})">Ver</button></td>
+  </tr>`).join('');
+}
+
+window.verFactura = async (id) => {
+  const { factura } = await api(`/facturas/${id}`);
+  document.getElementById('factura-detalle').innerHTML = `<div class="form-card">
+    <h2>Factura ${factura.numero}</h2>
+    <p><strong>Cliente:</strong> ${factura.cliente_nombre} ${factura.cliente_rut ? `(${factura.cliente_rut})` : ''}</p>
+    <p><strong>Maquinaria:</strong> ${factura.tipo_maquina} ${factura.marca} ${factura.modelo}</p>
+    <p><strong>Ruta:</strong> ${factura.origen} → ${factura.destino}</p>
+    <p><strong>Monto:</strong> ${formatMoney(factura.monto)}</p>
+    <p><strong>Comisión plataforma:</strong> ${formatMoney(factura.comision || 0)}</p>
+    <p><strong>Estado:</strong> ${statusLabel(factura.estado)}</p>
+    <p><strong>Fecha:</strong> ${formatDate(factura.created_at?.slice(0, 10))}</p>
+  </div>`;
+};

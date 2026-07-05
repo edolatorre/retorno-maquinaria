@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pago simulado — Retorno Maquinaria</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo"><h1>💳 Pago simulado</h1><p>MercadoPago — modo prueba</p></div>
+      <div id="alert"></div>
+      <p style="color:var(--muted);margin-bottom:1.5rem;">En producción aquí irías a MercadoPago. En modo prueba, simula un pago aprobado.</p>
+      <button id="btn-pagar" class="btn btn-primary">Simular pago aprobado</button>
+      <div class="auth-footer" style="margin-top:1.5rem;"><a href="#" id="volver">← Volver a la solicitud</a></div>
+    </div>
+  </div>
+  <script src="js/paths.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const solicitudId = params.get('solicitud');
+    const pagoId = params.get('pago');
+    document.getElementById('volver').href = appPath(`/solicitud.html?id=${solicitudId}`);
+
+    document.getElementById('btn-pagar').addEventListener('click', async () => {
+      const token = localStorage.getItem('retorno_token');
+      const res = await fetch(`/api/pagos/simular/${pagoId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        document.getElementById('alert').innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+        return;
+      }
+      document.getElementById('alert').innerHTML = '<div class="alert alert-success">¡Pago aprobado! Redirigiendo...</div>';
+      setTimeout(() => { window.location.href = appPath(`/solicitud.html?id=${solicitudId}&pago=ok`); }, 1500);
+    });
+  </script>
+</body>
+</html>

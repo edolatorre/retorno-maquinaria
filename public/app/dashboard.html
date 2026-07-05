@@ -3,74 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel — app.retorno.cl</title>
+  <title>Panel — Retorno Maquinaria</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <div class="app-layout">
     <aside class="app-sidebar">
-      <a href="/" class="app-logo">
-        <div class="app-logo-icon">🚜</div>
-        Retorno
-      </a>
+      <a href="/" class="app-logo"><div class="app-logo-icon">🚜</div> Retorno</a>
       <nav class="app-nav">
-        <a href="dashboard.html" data-page="dashboard">📊 Panel</a>
+        <a href="dashboard.html" data-page="dashboard">📊 Solicitudes</a>
         <a href="nueva-solicitud.html" data-page="nueva-solicitud" class="cliente-only">➕ Nueva solicitud</a>
-        <a href="dashboard.html" data-page="disponibles" class="transportista-only">📋 Solicitudes disponibles</a>
+        <a href="pagos.html" data-page="pagos">💳 Pagos</a>
+        <a href="facturacion.html" data-page="facturacion">🧾 Facturación</a>
       </nav>
       <div class="app-user">
         <div class="app-user-name" id="user-name">—</div>
         <div class="app-user-role" id="user-role">—</div>
-        <a href="#" id="logout-btn" style="font-size:0.85rem;margin-top:0.5rem;display:inline-block;">Cerrar sesión</a>
+        <a href="#" id="logout-btn">Cerrar sesión</a>
       </div>
     </aside>
 
     <main class="app-main" id="dashboard">
       <div class="app-header">
-        <h1 class="cliente-only">Mis solicitudes</h1>
-        <h1 class="transportista-only">Solicitudes disponibles</h1>
-        <a href="nueva-solicitud.html" class="btn btn-primary btn-sm cliente-only">+ Nueva solicitud</a>
+        <h1 id="dashboard-title">Solicitudes</h1>
+        <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+          <select id="filtro-estado" class="filter-select">
+            <option value="todas">Todos los estados</option>
+          </select>
+          <select id="filtro-vista" class="filter-select transportista-only">
+            <option value="disponibles">Disponibles</option>
+            <option value="asignadas">Mis asignadas</option>
+          </select>
+          <a href="nueva-solicitud.html" class="btn btn-primary btn-sm cliente-only">+ Nueva solicitud</a>
+        </div>
       </div>
 
       <div class="stats-row">
-        <div class="stat-card">
-          <strong id="stat-total">0</strong>
-          <span class="cliente-only">Total solicitudes</span>
-          <span class="transportista-only">Disponibles</span>
-        </div>
-        <div class="stat-card">
-          <strong id="stat-abiertas">0</strong>
-          <span class="cliente-only">Activas</span>
-          <span class="transportista-only">Sin ofertar</span>
-        </div>
-        <div class="stat-card">
-          <strong id="stat-ofertas">0</strong>
-          <span class="cliente-only">Ofertas recibidas</span>
-          <span class="transportista-only">Mis ofertas</span>
-        </div>
+        <div class="stat-card"><strong id="stat-total">0</strong><span id="stat-label-1">Total</span></div>
+        <div class="stat-card"><strong id="stat-abiertas">0</strong><span id="stat-label-2">Activas</span></div>
+        <div class="stat-card"><strong id="stat-ofertas">0</strong><span id="stat-label-3">Ofertas</span></div>
       </div>
 
       <div class="table-card">
-        <div class="table-header">
-          <h2 class="cliente-only">Historial de solicitudes</h2>
-          <h2 class="transportista-only">Maquinaria por transportar</h2>
-        </div>
+        <div class="table-header"><h2 id="table-title">Listado</h2></div>
         <table>
-          <thead>
-            <tr class="cliente-only">
-              <th>Maquinaria</th><th>Ruta</th><th>Retiro</th><th>Ofertas</th><th>Estado</th><th></th>
-            </tr>
-            <tr class="transportista-only">
-              <th>Maquinaria</th><th>Ruta</th><th>Retiro</th><th>Cliente</th><th>Estado</th><th></th>
-            </tr>
-          </thead>
+          <thead id="table-head"></thead>
           <tbody id="solicitudes-body"></tbody>
         </table>
-        <div class="empty-state" id="empty-state" style="display:none;">
-          <p class="cliente-only">Aún no tienes solicitudes. <a href="nueva-solicitud.html">Publica tu primera solicitud</a></p>
-          <p class="transportista-only">No hay solicitudes disponibles en este momento. Vuelve pronto.</p>
-        </div>
+        <div class="empty-state" id="empty-state" style="display:none;"><p id="empty-msg">Sin resultados</p></div>
       </div>
     </main>
   </div>

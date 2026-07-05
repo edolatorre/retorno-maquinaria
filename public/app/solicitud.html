@@ -3,64 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Detalle solicitud — app.retorno.cl</title>
+  <title>Solicitud — Retorno Maquinaria</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <div class="app-layout">
     <aside class="app-sidebar">
-      <a href="/" class="app-logo">
-        <div class="app-logo-icon">🚜</div>
-        Retorno
-      </a>
+      <a href="/" class="app-logo"><div class="app-logo-icon">🚜</div> Retorno</a>
       <nav class="app-nav">
-        <a href="dashboard.html" data-page="dashboard">📊 Panel</a>
+        <a href="dashboard.html" data-page="dashboard">📊 Solicitudes</a>
         <a href="nueva-solicitud.html" data-page="nueva-solicitud" class="cliente-only">➕ Nueva solicitud</a>
+        <a href="pagos.html" data-page="pagos">💳 Pagos</a>
+        <a href="facturacion.html" data-page="facturacion">🧾 Facturación</a>
       </nav>
       <div class="app-user">
         <div class="app-user-name" id="user-name">—</div>
         <div class="app-user-role" id="user-role">—</div>
-        <a href="#" id="logout-btn" style="font-size:0.85rem;margin-top:0.5rem;display:inline-block;">Cerrar sesión</a>
+        <a href="#" id="logout-btn">Cerrar sesión</a>
       </div>
     </aside>
 
     <main class="app-main">
       <div class="app-header">
-        <h1>Detalle de solicitud</h1>
+        <h1>Detalle solicitud</h1>
         <a href="dashboard.html" class="btn btn-outline btn-sm">← Volver</a>
       </div>
-
       <div id="alert"></div>
+      <div id="timeline" class="timeline"></div>
       <div id="solicitud-detail"></div>
+      <div id="contacto-section"></div>
       <div id="ofertas-section"></div>
-
+      <div id="pago-section"></div>
+      <div id="reportes-section"></div>
       <form id="oferta-form" class="form-card transportista-only" style="display:none;margin-top:1.5rem;">
         <h2>Enviar oferta</h2>
-        <p>Indica tu valor y fechas de carga y entrega.</p>
         <div class="form-row">
-          <div class="form-group">
-            <label for="valor">Valor (CLP) *</label>
-            <input type="number" id="valor" name="valor" required min="1" placeholder="Ej: 850000">
-          </div>
-          <div class="form-group">
-            <label for="fecha_carga">Fecha de carga *</label>
-            <input type="date" id="fecha_carga" name="fecha_carga" required>
-          </div>
+          <div class="form-group"><label>Valor (CLP)</label><input type="number" name="valor" required min="1"></div>
+          <div class="form-group"><label>Fecha carga</label><input type="date" name="fecha_carga" required></div>
         </div>
-        <div class="form-group">
-          <label for="fecha_entrega">Fecha de entrega *</label>
-          <input type="date" id="fecha_entrega" name="fecha_entrega" required>
-        </div>
-        <div class="form-group">
-          <label for="comentarios">Comentarios</label>
-          <textarea id="comentarios" name="comentarios" placeholder="Tipo de camión, condiciones, etc."></textarea>
-        </div>
+        <div class="form-group"><label>Fecha entrega</label><input type="date" name="fecha_entrega" required></div>
+        <div class="form-group"><label>Comentarios</label><textarea name="comentarios"></textarea></div>
         <button type="submit" class="btn btn-primary">Enviar oferta</button>
       </form>
+      <form id="reporte-retiro-form" class="form-card transportista-only" style="display:none;margin-top:1.5rem;">
+        <h2>📸 Reporte de retiro</h2>
+        <p style="color:var(--muted);margin-bottom:1rem;">Marca el inicio del retiro. Sube fotos de la máquina.</p>
+        <div class="form-group"><label>Detalles</label><input type="text" name="detalles" placeholder="Estado de la máquina, hora llegada..."></div>
+        <div class="form-group"><label>Comentarios</label><textarea name="comentarios"></textarea></div>
+        <div class="form-group"><label>Fotos *</label><input type="file" name="fotos" accept="image/*" multiple required></div>
+        <button type="submit" class="btn btn-primary">Iniciar retiro y subir reporte</button>
+      </form>
+      <form id="reporte-entrega-form" class="form-card transportista-only" style="display:none;margin-top:1.5rem;">
+        <h2>✅ Reporte de entrega</h2>
+        <p style="color:var(--muted);margin-bottom:1rem;">Proof of delivery + datos de quien recibe.</p>
+        <div class="form-row">
+          <div class="form-group"><label>Nombre receptor *</label><input type="text" name="receptor_nombre" required></div>
+          <div class="form-group"><label>RUT receptor</label><input type="text" name="receptor_rut"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Teléfono receptor</label><input type="tel" name="receptor_telefono"></div>
+          <div class="form-group"><label>Email receptor</label><input type="email" name="receptor_email"></div>
+        </div>
+        <div class="form-group"><label>Detalles entrega</label><input type="text" name="detalles"></div>
+        <div class="form-group"><label>Comentarios</label><textarea name="comentarios"></textarea></div>
+        <div class="form-group"><label>Fotos proof of delivery *</label><input type="file" name="fotos" accept="image/*" multiple required></div>
+        <button type="submit" class="btn btn-primary">Registrar entrega</button>
+      </form>
+      <div id="confirmar-section" class="form-card cliente-only" style="display:none;margin-top:1.5rem;">
+        <h2>Confirmar recepción</h2>
+        <p style="color:var(--muted);">Tienes 24 horas para confirmar. Si no confirmas, el pago se libera automáticamente al transportista.</p>
+        <p id="auto-confirm-info" style="margin:1rem 0;"></p>
+        <button id="btn-confirmar-entrega" class="btn btn-primary">Confirmar que recibí la máquina</button>
+      </div>
     </main>
   </div>
   <script src="js/paths.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/solicitud.js"></script>
 </body>
 </html>

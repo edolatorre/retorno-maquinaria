@@ -1,6 +1,5 @@
 const port = Number(process.env.PORT) || 3001;
 
-// Render expone la URL pública en RENDER_EXTERNAL_URL (ej. https://retorno-maquinaria.onrender.com)
 const renderUrl = process.env.RENDER_EXTERNAL_URL;
 const defaultLocal = `http://localhost:${port}`;
 
@@ -15,6 +14,13 @@ module.exports = {
   siteDomain: process.env.SITE_DOMAIN || 'retorno.cl',
   siteUrl,
   appUrl,
+  comisionPct: Number(process.env.COMISION_PCT) || 12,
+  autoConfirmHours: Number(process.env.AUTO_CONFIRM_HOURS) || 24,
+  mercadopago: {
+    accessToken: process.env.MP_ACCESS_TOKEN || '',
+    publicKey: process.env.MP_PUBLIC_KEY || '',
+    webhookSecret: process.env.MP_WEBHOOK_SECRET || ''
+  },
   admin: {
     email: process.env.ADMIN_EMAIL || 'admin@retorno.cl',
     password: process.env.ADMIN_PASSWORD || 'admin123',
