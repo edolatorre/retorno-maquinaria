@@ -8,7 +8,7 @@ const { runSeed } = require('./seed');
 runSeed();
 
 const config = require('./config');
-const { isAppSubdomain } = require('./middleware/subdomain');
+const { isAppSubdomain, getHostname } = require('./middleware/subdomain');
 const { startAutoConfirmJob } = require('./services/solicitudService');
 
 const authRouter = require('./routes/auth');
@@ -72,6 +72,18 @@ app.use('/api/admin', adminRouter);
 app.use('/api/pagos', pagosRouter);
 app.use('/api/reportes', reportesRouter);
 app.use('/api/facturas', facturasRouter);
+
+app.get('/app', (req, res) => res.redirect('/app/index.html'));
+
+// En localhost, /dashboard.html sin /app/ → redirigir a /app/...
+app.use((req, res, next) => {
+  if (isAppSubdomain(req)) return next();
+  const host = getHostname(req);
+  if (host !== 'localhost' && host !== '127.0.0.1') return next();
+  const m = req.path.match(/^\/(dashboard|solicitud|pagos|facturacion|nueva-solicitud|pago-simulado|register|index)(\.html)?$/);
+  if (m) return res.redirect('/app' + req.originalUrl);
+  next();
+});
 
 app.use('/admin', serveStaticDir(adminDir));
 

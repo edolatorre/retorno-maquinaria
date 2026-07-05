@@ -4,30 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Solicitud — Retorno Maquinaria</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <div class="app-layout">
-    <aside class="app-sidebar">
-      <a href="/" class="app-logo"><div class="app-logo-icon">🚜</div> Retorno</a>
-      <nav class="app-nav">
-        <a href="dashboard.html" data-page="dashboard">📊 Solicitudes</a>
-        <a href="nueva-solicitud.html" data-page="nueva-solicitud" class="cliente-only">➕ Nueva solicitud</a>
-        <a href="pagos.html" data-page="pagos">💳 Pagos</a>
-        <a href="facturacion.html" data-page="facturacion">🧾 Facturación</a>
-      </nav>
-      <div class="app-user">
-        <div class="app-user-name" id="user-name">—</div>
-        <div class="app-user-role" id="user-role">—</div>
-        <a href="#" id="logout-btn">Cerrar sesión</a>
-      </div>
-    </aside>
+    <aside class="app-sidebar"></aside>
 
     <main class="app-main">
       <div class="app-header">
-        <h1>Detalle solicitud</h1>
-        <a href="dashboard.html" class="btn btn-outline btn-sm">← Volver</a>
+        <div class="app-header-text">
+          <h1>Detalle solicitud</h1>
+          <p>Seguimiento, ofertas y gestión del traslado</p>
+        </div>
+        <div class="app-header-actions">
+          <a href="dashboard.html" class="btn btn-outline btn-sm">← Volver</a>
+        </div>
       </div>
       <div id="alert"></div>
       <div id="timeline" class="timeline"></div>
@@ -46,8 +38,14 @@
         <div class="form-group"><label>Comentarios</label><textarea name="comentarios"></textarea></div>
         <button type="submit" class="btn btn-primary">Enviar oferta</button>
       </form>
+      <div id="transportista-oferta-section"></div>
+      <div id="iniciar-traslado-section" class="form-card transportista-only" style="display:none;margin-top:1.5rem;">
+        <h2>🚛 Iniciar traslado</h2>
+        <p style="color:var(--muted);margin-bottom:1rem;">El pago fue confirmado. Inicia el traslado para inspeccionar la máquina y subir el reporte de retiro.</p>
+        <button id="btn-iniciar-traslado" type="button" class="btn btn-primary">Iniciar traslado e inspección</button>
+      </div>
       <form id="reporte-retiro-form" class="form-card transportista-only" style="display:none;margin-top:1.5rem;">
-        <h2>📸 Reporte de retiro</h2>
+        <h2>📸 Inspección y reporte de retiro</h2>
         <p style="color:var(--muted);margin-bottom:1rem;">Marca el inicio del retiro. Sube fotos de la máquina.</p>
         <div class="form-group"><label>Detalles</label><input type="text" name="detalles" placeholder="Estado de la máquina, hora llegada..."></div>
         <div class="form-group"><label>Comentarios</label><textarea name="comentarios"></textarea></div>
@@ -79,6 +77,7 @@
     </main>
   </div>
   <script src="js/paths.js"></script>
+  <script src="js/layout.js"></script>
   <script src="js/app.js"></script>
   <script src="js/solicitud.js"></script>
 </body>

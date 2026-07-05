@@ -4,45 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel — Retorno Maquinaria</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <div class="app-layout">
-    <aside class="app-sidebar">
-      <a href="/" class="app-logo"><div class="app-logo-icon">🚜</div> Retorno</a>
-      <nav class="app-nav">
-        <a href="dashboard.html" data-page="dashboard">📊 Solicitudes</a>
-        <a href="nueva-solicitud.html" data-page="nueva-solicitud" class="cliente-only">➕ Nueva solicitud</a>
-        <a href="pagos.html" data-page="pagos">💳 Pagos</a>
-        <a href="facturacion.html" data-page="facturacion">🧾 Facturación</a>
-      </nav>
-      <div class="app-user">
-        <div class="app-user-name" id="user-name">—</div>
-        <div class="app-user-role" id="user-role">—</div>
-        <a href="#" id="logout-btn">Cerrar sesión</a>
-      </div>
-    </aside>
+    <aside class="app-sidebar"></aside>
 
     <main class="app-main" id="dashboard">
       <div class="app-header">
-        <h1 id="dashboard-title">Solicitudes</h1>
-        <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+        <div class="app-header-text">
+          <h1 id="dashboard-title">Solicitudes</h1>
+          <p>Gestiona tus traslados de maquinaria</p>
+        </div>
+        <div class="app-header-actions">
           <select id="filtro-estado" class="filter-select">
             <option value="todas">Todos los estados</option>
           </select>
           <select id="filtro-vista" class="filter-select transportista-only">
             <option value="disponibles">Disponibles</option>
-            <option value="asignadas">Mis asignadas</option>
+            <option value="mis-ofertas">Mis ofertas</option>
+            <option value="asignadas">En traslado</option>
+          </select>
+          <select id="filtro-oferta" class="filter-select transportista-only" style="display:none;">
+            <option value="todas">Todas las ofertas</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="aceptada">Aceptada</option>
+            <option value="rechazada">Rechazada</option>
           </select>
           <a href="nueva-solicitud.html" class="btn btn-primary btn-sm cliente-only">+ Nueva solicitud</a>
         </div>
       </div>
 
       <div class="stats-row">
-        <div class="stat-card"><strong id="stat-total">0</strong><span id="stat-label-1">Total</span></div>
-        <div class="stat-card"><strong id="stat-abiertas">0</strong><span id="stat-label-2">Activas</span></div>
-        <div class="stat-card"><strong id="stat-ofertas">0</strong><span id="stat-label-3">Ofertas</span></div>
+        <div class="stat-card stat-primary">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" stroke="currentColor"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          </div>
+          <div class="stat-content">
+            <span id="stat-label-1">Total</span>
+            <strong id="stat-total">0</strong>
+          </div>
+        </div>
+        <div class="stat-card stat-success">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div class="stat-content">
+            <span id="stat-label-2">Activas</span>
+            <strong id="stat-abiertas">0</strong>
+          </div>
+        </div>
+        <div class="stat-card stat-warning">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" stroke="currentColor"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="stat-content">
+            <span id="stat-label-3">Ofertas</span>
+            <strong id="stat-ofertas">0</strong>
+          </div>
+        </div>
       </div>
 
       <div class="table-card">
@@ -56,6 +77,7 @@
     </main>
   </div>
   <script src="js/paths.js"></script>
+  <script src="js/layout.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

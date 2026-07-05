@@ -132,6 +132,49 @@ function migrateV2() {
   }
 }
 
+function migrateSolicitudEstados() {
+  const row = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='solicitudes'").get();
+  if (!row || row.sql.includes('oferta_seleccionada')) return;
+
+  db.pragma('foreign_keys = OFF');
+  db.exec(`
+    CREATE TABLE solicitudes_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      tipo_maquina TEXT NOT NULL,
+      marca TEXT NOT NULL,
+      modelo TEXT NOT NULL,
+      peso TEXT NOT NULL,
+      dimensiones TEXT NOT NULL,
+      fecha_retiro TEXT NOT NULL,
+      origen TEXT NOT NULL,
+      destino TEXT NOT NULL,
+      comentarios TEXT,
+      estado TEXT NOT NULL DEFAULT 'abierta',
+      oferta_id INTEGER,
+      transportista_id INTEGER,
+      auto_confirm_at TEXT,
+      entrega_confirmada_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+    INSERT INTO solicitudes_new (
+      id, user_id, tipo_maquina, marca, modelo, peso, dimensiones, fecha_retiro,
+      origen, destino, comentarios, estado, oferta_id, transportista_id,
+      auto_confirm_at, entrega_confirmada_at, created_at
+    )
+    SELECT
+      id, user_id, tipo_maquina, marca, modelo, peso, dimensiones, fecha_retiro,
+      origen, destino, comentarios,
+      CASE estado WHEN 'asignada' THEN 'en_transito' ELSE estado END,
+      oferta_id, transportista_id, auto_confirm_at, entrega_confirmada_at, created_at
+    FROM solicitudes;
+    DROP TABLE solicitudes;
+    ALTER TABLE solicitudes_new RENAME TO solicitudes;
+  `);
+  db.pragma('foreign_keys = ON');
+}
+
 function migrateAdminRole() {
   const row = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").get();
   if (!row || row.sql.includes("'admin'")) return;
@@ -155,5 +198,6 @@ function migrateAdminRole() {
 
 migrateAdminRole();
 migrateV2();
+migrateSolicitudEstados();
 
 module.exports = db;

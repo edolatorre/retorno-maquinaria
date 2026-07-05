@@ -4,41 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Facturación — Retorno Maquinaria</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <div class="app-layout">
-    <aside class="app-sidebar">
-      <a href="/" class="app-logo"><div class="app-logo-icon">🚜</div> Retorno</a>
-      <nav class="app-nav">
-        <a href="dashboard.html" data-page="dashboard">📊 Solicitudes</a>
-        <a href="nueva-solicitud.html" class="cliente-only" data-page="nueva-solicitud">➕ Nueva solicitud</a>
-        <a href="pagos.html" data-page="pagos">💳 Pagos</a>
-        <a href="facturacion.html" data-page="facturacion">🧾 Facturación</a>
-      </nav>
-      <div class="app-user">
-        <div class="app-user-name" id="user-name">—</div>
-        <div class="app-user-role" id="user-role">—</div>
-        <a href="#" id="logout-btn">Cerrar sesión</a>
-      </div>
-    </aside>
+    <aside class="app-sidebar"></aside>
     <main class="app-main" id="facturacion-page">
-      <div class="app-header"><h1>Facturación</h1></div>
-      <p style="color:var(--muted);margin-bottom:1.5rem;">Facturas emitidas al completar traslados confirmados.</p>
+      <div class="app-header">
+        <div class="app-header-text">
+          <h1>Facturación</h1>
+          <p>Facturas emitidas por traslados completados</p>
+        </div>
+      </div>
+      <p class="page-intro">Facturas emitidas al completar traslados confirmados.</p>
       <div class="table-card">
         <table>
           <thead>
-            <tr><th>N° Factura</th><th>Maquinaria</th><th>Monto</th><th>Estado</th><th>Fecha</th><th></th></tr>
+            <tr><th>N° Factura</th><th>Solicitud</th><th>Ruta</th><th>Monto</th><th>Fecha</th><th></th></tr>
           </thead>
           <tbody id="facturas-body"></tbody>
         </table>
-        <div class="empty-state" id="empty-facturas" style="display:none;"><p>Sin facturas aún</p></div>
+        <div class="empty-state" id="empty-facturas" style="display:none;"><p>Sin facturas emitidas</p></div>
       </div>
       <div id="factura-detalle" style="margin-top:1.5rem;"></div>
     </main>
   </div>
   <script src="js/paths.js"></script>
+  <script src="js/layout.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -4,17 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pago simulado — Retorno Maquinaria</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <div class="auth-page">
-    <div class="auth-card">
-      <div class="auth-logo"><h1>💳 Pago simulado</h1><p>MercadoPago — modo prueba</p></div>
-      <div id="alert"></div>
-      <p style="color:var(--muted);margin-bottom:1.5rem;">En producción aquí irías a MercadoPago. En modo prueba, simula un pago aprobado.</p>
-      <button id="btn-pagar" class="btn btn-primary">Simular pago aprobado</button>
-      <div class="auth-footer" style="margin-top:1.5rem;"><a href="#" id="volver">← Volver a la solicitud</a></div>
+    <div class="auth-visual">
+      <div class="auth-visual-content">
+        <div class="auth-visual-badge">💳 Modo prueba</div>
+        <h2>Pago seguro con MercadoPago</h2>
+        <p>En producción serás redirigido a MercadoPago. Aquí puedes simular un pago aprobado.</p>
+      </div>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-card">
+        <div class="auth-logo"><h1>Pago simulado</h1><p>MercadoPago — modo prueba</p></div>
+        <div id="alert"></div>
+        <p style="color:var(--muted);margin-bottom:1.5rem;">En producción aquí irías a MercadoPago. En modo prueba, simula un pago aprobado.</p>
+        <button id="btn-pagar" class="btn btn-primary">Simular pago aprobado</button>
+        <div class="auth-footer" style="margin-top:1.5rem;"><a href="#" id="volver">← Volver a la solicitud</a></div>
+      </div>
     </div>
   </div>
   <script src="js/paths.js"></script>

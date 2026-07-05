@@ -68,7 +68,7 @@ async function loadSolicitudDetail() {
 
   try {
     const data = await api(`/solicitudes/${id}`);
-    const { solicitud, ofertas, pago, reportes, contacto, comisionPct } = data;
+    const { solicitud, ofertas, pago, reportes, contacto, comisionPct, mi_oferta } = data;
 
     document.getElementById('timeline').innerHTML = renderTimeline(solicitud.estado);
     document.getElementById('solicitud-detail').innerHTML = `
@@ -99,10 +99,12 @@ async function loadSolicitudDetail() {
       }
     }
 
-    // Transportista: ofertar, reportes
+    // Transportista: ofertar, ver oferta, reportes
     if (user.rol === 'transportista') {
+      renderTransportistaOferta(mi_oferta, solicitud, id, alertEl);
+
       const ofertaForm = document.getElementById('oferta-form');
-      if (['abierta', 'en_oferta'].includes(solicitud.estado) && !ofertas.some(o => o.transportista_id === user.id)) {
+      if (['abierta', 'en_oferta'].includes(solicitud.estado) && !mi_oferta) {
         ofertaForm.style.display = 'block';
         ofertaForm.onsubmit = async e => {
           e.preventDefault();
@@ -121,10 +123,24 @@ async function loadSolicitudDetail() {
           } catch (err) { showAlert(alertEl, err.message); }
         };
       }
-      if (solicitud.estado === 'pago_retenido' && !reportes.some(r => r.tipo === 'retiro')) {
-        document.getElementById('reporte-retiro-form').style.display = 'block';
+
+      const puedeIniciar = solicitud.estado === 'pago_retenido' && !reportes.some(r => r.tipo === 'retiro');
+      const iniciarSection = document.getElementById('iniciar-traslado-section');
+      const retiroForm = document.getElementById('reporte-retiro-form');
+
+      if (puedeIniciar && mi_oferta?.estado === 'aceptada') {
+        iniciarSection.style.display = 'block';
+        document.getElementById('btn-iniciar-traslado').onclick = () => {
+          iniciarSection.style.display = 'none';
+          retiroForm.style.display = 'block';
+          retiroForm.scrollIntoView({ behavior: 'smooth' });
+        };
+        bindReporteForm('reporte-retiro-form', `/reportes/retiro/${id}`, alertEl);
+      } else if (puedeIniciar) {
+        retiroForm.style.display = 'block';
         bindReporteForm('reporte-retiro-form', `/reportes/retiro/${id}`, alertEl);
       }
+
       if (['en_transito', 'en_retiro'].includes(solicitud.estado) && !reportes.some(r => r.tipo === 'entrega')) {
         document.getElementById('reporte-entrega-form').style.display = 'block';
         bindReporteForm('reporte-entrega-form', `/reportes/entrega/${id}`, alertEl);
@@ -132,6 +148,33 @@ async function loadSolicitudDetail() {
     }
   } catch (err) {
     document.getElementById('solicitud-detail').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+  }
+}
+
+function renderTransportistaOferta(miOferta, solicitud, solicitudId, alertEl) {
+  const el = document.getElementById('transportista-oferta-section');
+  if (!miOferta) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `<div class="form-card" style="margin-top:1rem;">
+    <h3>Tu oferta</h3>
+    <p><strong>Valor:</strong> ${formatMoney(miOferta.valor)} ·
+      <span class="status-badge status-${miOferta.estado}">${statusLabel(miOferta.estado)}</span></p>
+    <p><strong>Carga:</strong> ${formatDate(miOferta.fecha_carga)} · <strong>Entrega:</strong> ${formatDate(miOferta.fecha_entrega)}</p>
+    ${miOferta.comentarios ? `<p>${miOferta.comentarios}</p>` : ''}
+    ${miOferta.estado === 'pendiente' && ['abierta', 'en_oferta'].includes(solicitud.estado)
+      ? `<button class="btn btn-outline btn-sm" id="btn-eliminar-oferta" style="margin-top:0.75rem;color:#ef4444;border-color:#ef4444;">Eliminar oferta</button>` : ''}
+  </div>`;
+
+  const btn = document.getElementById('btn-eliminar-oferta');
+  if (btn) {
+    btn.onclick = async () => {
+      if (!confirm('¿Eliminar tu oferta?')) return;
+      try {
+        await api(`/solicitudes/${solicitudId}/oferta`, { method: 'DELETE' });
+        showAlert(alertEl, 'Oferta eliminada', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } catch (err) { showAlert(alertEl, err.message); }
+    };
   }
 }
 
@@ -155,8 +198,13 @@ function renderOfertasCliente(ofertas, solicitud, comisionPct) {
   el.querySelectorAll('.btn-select').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!confirm('¿Seleccionar esta oferta? Las demás serán rechazadas.')) return;
-      await api(`/solicitudes/${solicitud.id}/seleccionar-oferta/${btn.dataset.id}`, { method: 'POST' });
-      location.reload();
+      const alertEl = document.getElementById('alert');
+      try {
+        await api(`/solicitudes/${solicitud.id}/seleccionar-oferta/${btn.dataset.id}`, { method: 'POST' });
+        location.reload();
+      } catch (err) {
+        showAlert(alertEl, err.message);
+      }
     });
   });
 }

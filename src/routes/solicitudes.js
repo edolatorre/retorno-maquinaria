@@ -56,13 +56,38 @@ router.get('/mis-solicitudes', authRequired, requireRole('cliente'), (req, res) 
 router.get('/disponibles', authRequired, requireRole('transportista'), (req, res) => {
   const solicitudes = db.prepare(`
     SELECT s.*, u.nombre AS cliente_nombre, u.empresa AS cliente_empresa,
-      (SELECT COUNT(*) FROM ofertas o WHERE o.solicitud_id = s.id AND o.transportista_id = ?) AS ya_oferte
+      o.id AS oferta_id, o.valor AS oferta_valor, o.fecha_carga, o.fecha_entrega,
+      o.estado AS oferta_estado, o.comentarios AS oferta_comentarios,
+      CASE WHEN o.id IS NOT NULL THEN 1 ELSE 0 END AS ya_oferte
     FROM solicitudes s
     JOIN users u ON u.id = s.user_id
+    LEFT JOIN ofertas o ON o.solicitud_id = s.id AND o.transportista_id = ?
     WHERE s.estado IN ('abierta', 'en_oferta')
     ORDER BY s.fecha_retiro ASC
   `).all(req.user.id);
   res.json({ solicitudes });
+});
+
+router.get('/mis-ofertas', authRequired, requireRole('transportista'), (req, res) => {
+  const { estado_oferta } = req.query;
+  let sql = `
+    SELECT s.*, u.nombre AS cliente_nombre, u.empresa AS cliente_empresa,
+      o.id AS oferta_id, o.estado AS oferta_estado, o.valor AS oferta_valor,
+      o.fecha_carga, o.fecha_entrega, o.created_at AS oferta_created_at,
+      p.estado AS pago_estado, p.monto AS pago_monto
+    FROM ofertas o
+    JOIN solicitudes s ON s.id = o.solicitud_id
+    JOIN users u ON u.id = s.user_id
+    LEFT JOIN pagos p ON p.solicitud_id = s.id
+    WHERE o.transportista_id = ?
+  `;
+  const params = [req.user.id];
+  if (estado_oferta && estado_oferta !== 'todas') {
+    sql += ' AND o.estado = ?';
+    params.push(estado_oferta);
+  }
+  sql += ' ORDER BY o.created_at DESC';
+  res.json({ solicitudes: db.prepare(sql).all(...params) });
 });
 
 router.get('/asignadas', authRequired, requireRole('transportista'), (req, res) => {
@@ -83,6 +108,33 @@ router.get('/asignadas', authRequired, requireRole('transportista'), (req, res) 
   }
   sql += ' ORDER BY s.created_at DESC';
   res.json({ solicitudes: db.prepare(sql).all(...params), estados: ESTADOS_VALIDOS });
+});
+
+router.delete('/:id/oferta', authRequired, requireRole('transportista'), (req, res) => {
+  const oferta = db.prepare(`
+    SELECT o.*, s.estado AS solicitud_estado
+    FROM ofertas o JOIN solicitudes s ON s.id = o.solicitud_id
+    WHERE o.solicitud_id = ? AND o.transportista_id = ?
+  `).get(req.params.id, req.user.id);
+
+  if (!oferta) return res.status(404).json({ error: 'Oferta no encontrada' });
+  if (oferta.estado !== 'pendiente') {
+    return res.status(400).json({ error: 'Solo puedes eliminar ofertas pendientes' });
+  }
+  if (!['abierta', 'en_oferta'].includes(oferta.solicitud_estado)) {
+    return res.status(400).json({ error: 'Esta solicitud ya no acepta cambios en ofertas' });
+  }
+
+  db.prepare('DELETE FROM ofertas WHERE id = ?').run(oferta.id);
+
+  const restantes = db.prepare('SELECT COUNT(*) AS n FROM ofertas WHERE solicitud_id = ?')
+    .get(oferta.solicitud_id).n;
+  if (restantes === 0) {
+    db.prepare("UPDATE solicitudes SET estado = 'abierta' WHERE id = ? AND estado = 'en_oferta'")
+      .run(oferta.solicitud_id);
+  }
+
+  res.json({ ok: true });
 });
 
 router.post('/:id/seleccionar-oferta/:ofertaId', authRequired, requireRole('cliente'), (req, res) => {
@@ -163,7 +215,11 @@ router.get('/:id', authRequired, (req, res) => {
     };
   }
 
-  res.json({ solicitud: sol, ofertas, pago, reportes, contacto, comisionPct: config.comisionPct });
+  const miOferta = req.user.rol === 'transportista'
+    ? db.prepare('SELECT * FROM ofertas WHERE solicitud_id = ? AND transportista_id = ?').get(sol.id, req.user.id)
+    : null;
+
+  res.json({ solicitud: sol, ofertas, pago, reportes, contacto, comisionPct: config.comisionPct, mi_oferta: miOferta });
 });
 
 router.post('/:id/ofertas', authRequired, requireRole('transportista'), (req, res) => {

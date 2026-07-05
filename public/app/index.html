@@ -4,36 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ingresar — app.retorno.cl</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <div class="auth-page">
-    <div class="auth-card">
-      <div class="auth-logo">
-        <h1>🚜 Retorno Maquinaria</h1>
-        <p>app.retorno.cl</p>
-        <div class="badge">Transporte de maquinaria pesada</div>
+    <div class="auth-visual">
+      <div class="auth-visual-content">
+        <div class="auth-visual-badge">🚜 Plataforma B2B</div>
+        <h2>Traslado de maquinaria pesada, simplificado</h2>
+        <p>Conecta clientes y transportistas en un solo lugar. Ofertas, pagos seguros y seguimiento en tiempo real.</p>
       </div>
-
-      <div id="alert"></div>
-
-      <form id="login-form">
-        <div class="form-group">
-          <label for="email">Correo electrónico</label>
-          <input type="email" id="email" name="email" required placeholder="tu@empresa.cl">
+    </div>
+    <div class="auth-panel">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <h1>Retorno Maquinaria</h1>
+          <p>app.retorno.cl</p>
+          <div class="badge">Transporte de maquinaria pesada</div>
         </div>
-        <div class="form-group">
-          <label for="password">Contraseña</label>
-          <input type="password" id="password" name="password" required placeholder="••••••••">
-        </div>
-        <button type="submit" class="btn btn-primary">Ingresar</button>
-      </form>
 
-      <div class="auth-footer">
-        ¿No tienes cuenta? <a href="register.html">Regístrate gratis</a>
-        <br><br>
-        <a href="/" style="color:var(--muted);font-size:0.85rem;">← Volver al sitio</a>
+        <div id="alert"></div>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" required placeholder="tu@empresa.cl">
+          </div>
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn btn-primary">Ingresar</button>
+        </form>
+
+        <div class="auth-footer">
+          ¿No tienes cuenta? <a href="register.html">Regístrate gratis</a>
+          <br><br>
+          <a href="/" style="color:var(--muted);font-size:0.85rem;">← Volver al sitio</a>
+        </div>
       </div>
     </div>
   </div>
