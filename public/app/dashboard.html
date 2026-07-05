@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel — app.retorno.cl</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <a href="/" class="app-logo">
+        <div class="app-logo-icon">🚜</div>
+        Retorno
+      </a>
+      <nav class="app-nav">
+        <a href="dashboard.html" data-page="dashboard">📊 Panel</a>
+        <a href="nueva-solicitud.html" data-page="nueva-solicitud" class="cliente-only">➕ Nueva solicitud</a>
+        <a href="dashboard.html" data-page="disponibles" class="transportista-only">📋 Solicitudes disponibles</a>
+      </nav>
+      <div class="app-user">
+        <div class="app-user-name" id="user-name">—</div>
+        <div class="app-user-role" id="user-role">—</div>
+        <a href="#" id="logout-btn" style="font-size:0.85rem;margin-top:0.5rem;display:inline-block;">Cerrar sesión</a>
+      </div>
+    </aside>
+
+    <main class="app-main" id="dashboard">
+      <div class="app-header">
+        <h1 class="cliente-only">Mis solicitudes</h1>
+        <h1 class="transportista-only">Solicitudes disponibles</h1>
+        <a href="nueva-solicitud.html" class="btn btn-primary btn-sm cliente-only">+ Nueva solicitud</a>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <strong id="stat-total">0</strong>
+          <span class="cliente-only">Total solicitudes</span>
+          <span class="transportista-only">Disponibles</span>
+        </div>
+        <div class="stat-card">
+          <strong id="stat-abiertas">0</strong>
+          <span class="cliente-only">Activas</span>
+          <span class="transportista-only">Sin ofertar</span>
+        </div>
+        <div class="stat-card">
+          <strong id="stat-ofertas">0</strong>
+          <span class="cliente-only">Ofertas recibidas</span>
+          <span class="transportista-only">Mis ofertas</span>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <h2 class="cliente-only">Historial de solicitudes</h2>
+          <h2 class="transportista-only">Maquinaria por transportar</h2>
+        </div>
+        <table>
+          <thead>
+            <tr class="cliente-only">
+              <th>Maquinaria</th><th>Ruta</th><th>Retiro</th><th>Ofertas</th><th>Estado</th><th></th>
+            </tr>
+            <tr class="transportista-only">
+              <th>Maquinaria</th><th>Ruta</th><th>Retiro</th><th>Cliente</th><th>Estado</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="solicitudes-body"></tbody>
+        </table>
+        <div class="empty-state" id="empty-state" style="display:none;">
+          <p class="cliente-only">Aún no tienes solicitudes. <a href="nueva-solicitud.html">Publica tu primera solicitud</a></p>
+          <p class="transportista-only">No hay solicitudes disponibles en este momento. Vuelve pronto.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="js/paths.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

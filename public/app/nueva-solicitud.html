@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nueva solicitud — app.retorno.cl</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <a href="/" class="app-logo">
+        <div class="app-logo-icon">🚜</div>
+        Retorno
+      </a>
+      <nav class="app-nav">
+        <a href="dashboard.html" data-page="dashboard">📊 Panel</a>
+        <a href="nueva-solicitud.html" data-page="nueva-solicitud" class="cliente-only">➕ Nueva solicitud</a>
+      </nav>
+      <div class="app-user">
+        <div class="app-user-name" id="user-name">—</div>
+        <div class="app-user-role" id="user-role">—</div>
+        <a href="#" id="logout-btn" style="font-size:0.85rem;margin-top:0.5rem;display:inline-block;">Cerrar sesión</a>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="app-header">
+        <h1>Nueva solicitud de transporte</h1>
+      </div>
+
+      <div id="alert"></div>
+
+      <form id="solicitud-form" class="form-card">
+        <h2>Datos de la maquinaria</h2>
+        <p>Completa la información para que los transportistas puedan ofertar.</p>
+
+        <div class="form-section">
+          <h3>Identificación de la máquina</h3>
+          <div class="form-group">
+            <label for="tipo_maquina">Tipo de máquina *</label>
+            <select id="tipo_maquina" name="tipo_maquina" required>
+              <option value="">Seleccionar...</option>
+              <option value="Excavadora">Excavadora</option>
+              <option value="Retroexcavadora">Retroexcavadora</option>
+              <option value="Bulldozer">Bulldozer</option>
+              <option value="Grúa móvil">Grúa móvil</option>
+              <option value="Motoniveladora">Motoniveladora</option>
+              <option value="Cargador frontal">Cargador frontal</option>
+              <option value="Rodillo compactador">Rodillo compactador</option>
+              <option value="Minicargador">Minicargador</option>
+              <option value="Manipulador">Manipulador</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="marca">Marca *</label>
+              <input type="text" id="marca" name="marca" required placeholder="Ej: Caterpillar, Komatsu, Volvo">
+            </div>
+            <div class="form-group">
+              <label for="modelo">Modelo *</label>
+              <input type="text" id="modelo" name="modelo" required placeholder="Ej: 320D, PC200">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="peso">Peso *</label>
+              <input type="text" id="peso" name="peso" required placeholder="Ej: 22 toneladas">
+            </div>
+            <div class="form-group">
+              <label for="dimensiones">Dimensiones *</label>
+              <input type="text" id="dimensiones" name="dimensiones" required placeholder="Largo × Ancho × Alto (m)">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Traslado</h3>
+          <div class="form-group">
+            <label for="fecha_retiro">Fecha de retiro *</label>
+            <input type="date" id="fecha_retiro" name="fecha_retiro" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="origen">Origen *</label>
+              <input type="text" id="origen" name="origen" required placeholder="Ciudad, dirección o faena">
+            </div>
+            <div class="form-group">
+              <label for="destino">Destino *</label>
+              <input type="text" id="destino" name="destino" required placeholder="Ciudad, dirección o faena">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Información adicional</h3>
+          <div class="form-group">
+            <label for="comentarios">Comentarios</label>
+            <textarea id="comentarios" name="comentarios" placeholder="Restricciones de acceso, necesidad de grúa auxiliar, horarios, etc."></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Publicar solicitud</button>
+      </form>
+    </main>
+  </div>
+  <script src="js/paths.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

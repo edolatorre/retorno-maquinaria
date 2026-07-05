@@ -1,0 +1,40 @@
+.tab-panel { animation: fadeIn 0.2s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.role-cliente { background: rgba(59,130,246,0.15); color: #93c5fd; }
+.role-transportista { background: rgba(245,158,11,0.15); color: var(--accent); }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .detail-grid { grid-template-columns: 1fr; }
+}
+
+table td small {
+  color: var(--muted);
+  display: block;
+}
+
+#admin-logout {
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  display: inline-block;
+  color: var(--accent);
+}

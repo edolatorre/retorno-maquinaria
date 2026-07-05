@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Retorno Maquinaria</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/app/css/app.css">
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+
+  <!-- Login (visible por defecto) -->
+  <div id="login-view" class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <h1>🔐 Panel Admin</h1>
+        <p>Retorno Maquinaria</p>
+      </div>
+      <div id="login-alert"></div>
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label for="email">Correo</label>
+          <input type="email" id="email" name="email" required placeholder="admin@retorno.cl">
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Ingresar</button>
+      </form>
+      <div class="auth-footer">
+        <a href="/app/">← Volver a la app</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel admin -->
+  <div id="admin-view" class="app-layout" style="display:none;">
+    <aside class="app-sidebar">
+      <div class="app-logo">
+        <div class="app-logo-icon">⚙️</div>
+        Admin
+      </div>
+      <nav class="app-nav" id="admin-nav">
+        <a href="#" data-tab="dashboard" class="active">📊 Resumen</a>
+        <a href="#" data-tab="users">👥 Usuarios</a>
+        <a href="#" data-tab="solicitudes">📋 Solicitudes</a>
+        <a href="#" data-tab="ofertas">💰 Ofertas</a>
+      </nav>
+      <div class="app-user">
+        <div class="app-user-name" id="admin-name">—</div>
+        <div class="app-user-role">Administrador</div>
+        <a href="#" id="admin-logout">Cerrar sesión</a>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div id="tab-dashboard" class="tab-panel">
+        <div class="app-header"><h1>Resumen</h1></div>
+        <div class="stats-row" id="admin-stats"></div>
+      </div>
+
+      <div id="tab-users" class="tab-panel" style="display:none;">
+        <div class="app-header"><h1>Usuarios</h1></div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Empresa</th><th>Teléfono</th><th>Solicitudes</th><th>Registro</th></tr>
+            </thead>
+            <tbody id="users-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tab-solicitudes" class="tab-panel" style="display:none;">
+        <div class="app-header"><h1>Solicitudes</h1></div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Maquinaria</th><th>Cliente</th><th>Ruta</th><th>Retiro</th><th>Ofertas</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody id="solicitudes-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tab-ofertas" class="tab-panel" style="display:none;">
+        <div class="app-header"><h1>Ofertas</h1></div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Solicitud</th><th>Transportista</th><th>Cliente</th><th>Valor</th><th>Carga</th><th>Entrega</th><th>Estado</th></tr>
+            </thead>
+            <tbody id="ofertas-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tab-detail" class="tab-panel" style="display:none;">
+        <div class="app-header">
+          <h1>Detalle solicitud</h1>
+          <button class="btn btn-outline btn-sm" id="back-list">← Volver</button>
+        </div>
+        <div id="detail-content"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/admin/js/admin.js"></script>
+</body>
+</html>

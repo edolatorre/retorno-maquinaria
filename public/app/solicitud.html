@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle solicitud — app.retorno.cl</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <a href="/" class="app-logo">
+        <div class="app-logo-icon">🚜</div>
+        Retorno
+      </a>
+      <nav class="app-nav">
+        <a href="dashboard.html" data-page="dashboard">📊 Panel</a>
+        <a href="nueva-solicitud.html" data-page="nueva-solicitud" class="cliente-only">➕ Nueva solicitud</a>
+      </nav>
+      <div class="app-user">
+        <div class="app-user-name" id="user-name">—</div>
+        <div class="app-user-role" id="user-role">—</div>
+        <a href="#" id="logout-btn" style="font-size:0.85rem;margin-top:0.5rem;display:inline-block;">Cerrar sesión</a>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="app-header">
+        <h1>Detalle de solicitud</h1>
+        <a href="dashboard.html" class="btn btn-outline btn-sm">← Volver</a>
+      </div>
+
+      <div id="alert"></div>
+      <div id="solicitud-detail"></div>
+      <div id="ofertas-section"></div>
+
+      <form id="oferta-form" class="form-card transportista-only" style="display:none;margin-top:1.5rem;">
+        <h2>Enviar oferta</h2>
+        <p>Indica tu valor y fechas de carga y entrega.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="valor">Valor (CLP) *</label>
+            <input type="number" id="valor" name="valor" required min="1" placeholder="Ej: 850000">
+          </div>
+          <div class="form-group">
+            <label for="fecha_carga">Fecha de carga *</label>
+            <input type="date" id="fecha_carga" name="fecha_carga" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="fecha_entrega">Fecha de entrega *</label>
+          <input type="date" id="fecha_entrega" name="fecha_entrega" required>
+        </div>
+        <div class="form-group">
+          <label for="comentarios">Comentarios</label>
+          <textarea id="comentarios" name="comentarios" placeholder="Tipo de camión, condiciones, etc."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar oferta</button>
+      </form>
+    </main>
+  </div>
+  <script src="js/paths.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

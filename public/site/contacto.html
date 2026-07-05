@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacto — Retorno Maquinaria</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="logo"><div class="logo-icon">🚜</div> Retorno <span>Maquinaria</span></a>
+    <button class="nav-toggle" aria-label="Menú">☰</button>
+    <nav class="nav-main">
+      <a href="/">Inicio</a>
+      <a href="/para-clientes.html">Para Clientes</a>
+      <a href="/para-transportistas.html">Para Transportistas</a>
+      <a href="/como-funciona.html">Cómo Funciona</a>
+      <a href="/servicios.html">Servicios</a>
+      <a href="/sustentabilidad.html">Sustentabilidad</a>
+      <a href="/faq.html">FAQ</a>
+      <a href="/contacto.html">Contacto</a>
+    </nav>
+    <div class="header-actions">
+      <a href="/app/" class="btn btn-outline">Ingresar</a>
+      <a href="/app/register.html?rol=cliente" class="btn btn-primary">Cotizar ahora</a>
+    </div>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="container">
+    <h1>Contáctanos</h1>
+    <p>¿Tienes dudas sobre el transporte de tu maquinaria? Escríbenos y te ayudamos.</p>
+  </div>
+</div>
+
+<section>
+  <div class="container contact-grid">
+    <div class="contact-info">
+      <h3>Información de contacto</h3>
+      <div class="contact-item">
+        <div class="contact-item-icon">📧</div>
+        <div><strong>Email</strong><br><span style="color:var(--muted);">contacto@retorno.cl</span></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-item-icon">📱</div>
+        <div><strong>WhatsApp</strong><br><span style="color:var(--muted);">+56 9 1234 5678</span></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-item-icon">🕐</div>
+        <div><strong>Horario</strong><br><span style="color:var(--muted);">Lun–Vie 9:00–18:00</span></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-item-icon">💻</div>
+        <div><strong>Plataforma</strong><br><span style="color:var(--muted);">app.retorno.cl</span></div>
+      </div>
+    </div>
+    <form class="contact-form" id="contact-form">
+      <div class="form-group">
+        <label for="nombre">Nombre *</label>
+        <input type="text" id="nombre" name="nombre" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Correo electrónico *</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label for="telefono">Teléfono</label>
+        <input type="tel" id="telefono" name="telefono">
+      </div>
+      <div class="form-group">
+        <label for="mensaje">Mensaje *</label>
+        <textarea id="mensaje" name="mensaje" required placeholder="Cuéntanos qué maquinaria necesitas mover..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">Enviar mensaje</button>
+    </form>
+  </div>
+</section>
+
+<footer class="site-footer"><div class="container"><div class="footer-bottom" style="border:none;padding:0;"><span>© 2026 Retorno Maquinaria</span><a href="/" style="color:var(--accent);">← Volver al inicio</a></div></div></footer>
+<script src="/js/site.js"></script>
+</body>
+</html>

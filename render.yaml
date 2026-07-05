@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: retorno-maquinaria
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        generateValue: true

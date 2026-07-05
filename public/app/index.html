@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingresar — app.retorno.cl</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <h1>🚜 Retorno Maquinaria</h1>
+        <p>app.retorno.cl</p>
+        <div class="badge">Transporte de maquinaria pesada</div>
+      </div>
+
+      <div id="alert"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" name="email" required placeholder="tu@empresa.cl">
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" name="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary">Ingresar</button>
+      </form>
+
+      <div class="auth-footer">
+        ¿No tienes cuenta? <a href="register.html">Regístrate gratis</a>
+        <br><br>
+        <a href="/" style="color:var(--muted);font-size:0.85rem;">← Volver al sitio</a>
+      </div>
+    </div>
+  </div>
+  <script src="js/paths.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('retorno_token')) {
+        const user = JSON.parse(localStorage.getItem('retorno_user') || '{}');
+        if (user.rol === 'admin') window.location.href = adminPath('/');
+        else window.location.href = appPath('/dashboard.html');
+      }
+    });
+  </script>
+</body>
+</html>
