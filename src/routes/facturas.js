@@ -5,12 +5,16 @@ const { authRequired } = require('../middleware/auth');
 const router = express.Router();
 
 router.get('/', authRequired, (req, res) => {
-  if (req.user.rol === 'cliente') {
-    return res.status(403).json({ error: 'Acceso denegado' });
-  }
-
   let facturas;
-  if (req.user.rol === 'transportista') {
+  if (req.user.rol === 'cliente') {
+    facturas = db.prepare(`
+      SELECT f.*, s.tipo_maquina, s.marca, s.modelo, s.origen, s.destino
+      FROM facturas f
+      JOIN solicitudes s ON s.id = f.solicitud_id
+      WHERE s.user_id = ?
+      ORDER BY f.created_at DESC
+    `).all(req.user.id);
+  } else if (req.user.rol === 'transportista') {
     facturas = db.prepare(`
       SELECT f.*, s.tipo_maquina, s.marca, s.modelo, s.origen, s.destino
       FROM facturas f
@@ -20,7 +24,7 @@ router.get('/', authRequired, (req, res) => {
     `).all(req.user.id);
   } else if (req.user.rol === 'admin') {
     facturas = db.prepare(`
-      SELECT f.*, s.tipo_maquina, s.marca, s.modelo, c.nombre AS cliente_nombre
+      SELECT f.*, s.tipo_maquina, s.marca, s.modelo, s.origen, s.destino, c.nombre AS cliente_nombre
       FROM facturas f
       JOIN solicitudes s ON s.id = f.solicitud_id
       JOIN users c ON c.id = s.user_id
@@ -46,7 +50,7 @@ router.get('/:id', authRequired, (req, res) => {
 
   if (!factura) return res.status(404).json({ error: 'Factura no encontrada' });
 
-  if (req.user.rol === 'cliente') {
+  if (req.user.rol === 'cliente' && factura.user_id !== req.user.id) {
     return res.status(403).json({ error: 'Acceso denegado' });
   }
   if (req.user.rol === 'transportista' && factura.transportista_id !== req.user.id) {

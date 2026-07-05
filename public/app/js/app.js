@@ -238,10 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (document.getElementById('facturacion-page')) {
     if (!requireAuth()) return;
-    if (getUser().rol === 'cliente') {
-      window.location.href = appPath('/dashboard.html');
-      return;
-    }
     initSidebar('facturacion');
     loadFacturacion();
   }
@@ -401,9 +397,9 @@ async function loadFacturacion() {
   empty.style.display = 'none';
   tbody.innerHTML = facturas.map(f => `<tr>
     <td><strong>${f.numero}</strong></td>
-    <td>${f.tipo_maquina} ${f.marca}</td>
-    <td>${formatMoney(f.monto)}</td>
-    <td><span class="status-badge status-${f.estado}">${statusLabel(f.estado)}</span></td>
+    <td><strong>${f.tipo_maquina}</strong> ${f.marca} ${f.modelo}</td>
+    <td>${f.origen} → ${f.destino}</td>
+    <td><strong style="color:var(--accent)">${formatMoney(f.monto)}</strong></td>
     <td>${formatDate(f.created_at?.slice(0, 10))}</td>
     <td><button class="btn btn-outline btn-sm" onclick="verFactura(${f.id})">Ver</button></td>
   </tr>`).join('');

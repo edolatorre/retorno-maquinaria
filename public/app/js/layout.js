@@ -30,7 +30,7 @@ function renderSidebar() {
         <span class="nav-icon">${NAV_ICONS.pagos}</span>
         Pagos
       </a>
-      <a href="${base('/facturacion.html')}" data-page="facturacion" class="transportista-only">
+      <a href="${base('/facturacion.html')}" data-page="facturacion">
         <span class="nav-icon">${NAV_ICONS.facturacion}</span>
         Facturación
       </a>
