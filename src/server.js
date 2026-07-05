@@ -24,6 +24,22 @@ const adminDir = path.join(__dirname, '..', 'public', 'admin');
 const siteDir = path.join(__dirname, '..', 'public', 'site');
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 
+function serveStaticDir(rootDir) {
+  const root = path.resolve(rootDir);
+  return (req, res) => {
+    let rel = decodeURIComponent(req.path.replace(/^\//, ''));
+    if (!rel) rel = 'index.html';
+    const filePath = path.resolve(root, rel);
+    if (!filePath.startsWith(root + path.sep) && filePath !== root) {
+      return res.status(403).type('text/plain').send('Forbidden');
+    }
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      return res.sendFile(filePath);
+    }
+    res.status(404).type('text/plain').send('Not Found');
+  };
+}
+
 app.use(express.json());
 app.use('/uploads', express.static(uploadsDir));
 
@@ -46,22 +62,14 @@ app.use('/api/pagos', pagosRouter);
 app.use('/api/reportes', reportesRouter);
 app.use('/api/facturas', facturasRouter);
 
-app.get(['/admin', '/admin/'], (req, res) => res.sendFile(path.join(adminDir, 'index.html')));
-app.use('/admin', express.static(adminDir, { index: false, redirect: false }));
+app.use('/admin', serveStaticDir(adminDir));
 
 app.use((req, res, next) => {
   if (!isAppSubdomain(req) || req.path.startsWith('/api') || req.path.startsWith('/admin')) return next();
-  if (req.path === '/' || req.path === '') return res.sendFile(path.join(appDir, 'index.html'));
-  const file = path.join(appDir, req.path.replace(/^\//, ''));
-  const resolved = path.resolve(file);
-  if (resolved.startsWith(path.resolve(appDir)) && fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
-    return res.sendFile(resolved);
-  }
-  res.sendFile(path.join(appDir, 'index.html'));
+  return serveStaticDir(appDir)(req, res);
 });
 
-app.get(['/app', '/app/'], (req, res) => res.sendFile(path.join(appDir, 'index.html')));
-app.use('/app', express.static(appDir, { index: false, redirect: false }));
+app.use('/app', serveStaticDir(appDir));
 app.use(express.static(siteDir, { index: 'index.html' }));
 
 startAutoConfirmJob();
