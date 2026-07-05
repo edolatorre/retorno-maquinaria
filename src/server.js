@@ -46,9 +46,8 @@ app.use('/api/pagos', pagosRouter);
 app.use('/api/reportes', reportesRouter);
 app.use('/api/facturas', facturasRouter);
 
-app.get('/admin', (req, res) => res.redirect(301, '/admin/'));
-app.get('/admin/', (req, res) => res.sendFile(path.join(adminDir, 'index.html')));
-app.use('/admin', express.static(adminDir));
+app.get(['/admin', '/admin/'], (req, res) => res.sendFile(path.join(adminDir, 'index.html')));
+app.use('/admin', express.static(adminDir, { index: false, redirect: false }));
 
 app.use((req, res, next) => {
   if (!isAppSubdomain(req) || req.path.startsWith('/api') || req.path.startsWith('/admin')) return next();
@@ -61,8 +60,8 @@ app.use((req, res, next) => {
   res.sendFile(path.join(appDir, 'index.html'));
 });
 
-app.get('/app', (req, res) => res.redirect(301, '/app/'));
-app.use('/app', express.static(appDir, { index: 'index.html' }));
+app.get(['/app', '/app/'], (req, res) => res.sendFile(path.join(appDir, 'index.html')));
+app.use('/app', express.static(appDir, { index: false, redirect: false }));
 app.use(express.static(siteDir, { index: 'index.html' }));
 
 startAutoConfirmJob();
