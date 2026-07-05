@@ -61,6 +61,9 @@ app.get('/api/config', (req, res) => {
     appUrl: config.appUrl,
     siteUrl: config.siteUrl,
     isAppSubdomain: isAppSubdomain(req),
+    paymentProvider: config.paymentProvider,
+    khipuConfigured: require('./services/khipuService').hasCredentials(),
+    khipuMode: config.khipu.mode,
     mpPublicKey: config.mercadopago.publicKey,
     mpConfigured: !!config.mercadopago.accessToken
   });
@@ -104,6 +107,11 @@ app.listen(config.port, () => {
   console.log(`  Sitio:   ${config.siteUrl}`);
   console.log(`  App:     ${config.appUrl}`);
   console.log(`  Admin:   ${config.siteUrl}/admin/`);
-  console.log(`  MP:      ${config.mercadopago.accessToken ? 'configurado' : 'modo simulado'}`);
+  console.log(`  Pagos:   ${config.paymentProvider}${require('./services/paymentService').isConfigured() ? ' (configurado)' : ' (modo simulado)'}`);
+  if (config.paymentProvider === 'khipu') {
+    console.log(`  Khipu:   modo ${config.khipu.mode}`);
+  } else {
+    console.log(`  MP:      ${config.mercadopago.accessToken ? 'configurado' : 'modo simulado'}`);
+  }
   console.log('');
 });

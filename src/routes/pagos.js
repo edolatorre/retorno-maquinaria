@@ -3,18 +3,19 @@ const db = require('../db');
 const config = require('../config');
 const { authRequired, requireRole } = require('../middleware/auth');
 const { ESTADOS, getSolicitudFull, releasePayment } = require('../services/solicitudService');
-const { createPreference, getPayment } = require('../services/mercadopagoService');
+const khipu = require('../services/khipuService');
+const { createCheckout, verifyExternalPayment } = require('../services/paymentService');
 const { notifyPagoRecibido } = require('../services/emailService');
 
 const router = express.Router();
 
-function markPaid(pagoId, mpPaymentId) {
+function markPaid(pagoId, externalPaymentId) {
   const pago = db.prepare('SELECT * FROM pagos WHERE id = ?').get(pagoId);
   if (!pago || ['retenido', 'liberado'].includes(pago.estado)) return null;
 
   db.prepare(`
     UPDATE pagos SET estado = 'retenido', mp_payment_id = ?, paid_at = datetime('now') WHERE id = ?
-  `).run(mpPaymentId || `sim-${pagoId}`, pagoId);
+  `).run(externalPaymentId || `sim-${pagoId}`, pagoId);
 
   db.prepare(`UPDATE solicitudes SET estado = ? WHERE id = ?`)
     .run(ESTADOS.PAGO_RETENIDO, pago.solicitud_id);
@@ -86,15 +87,20 @@ router.post('/crear/:solicitudId', authRequired, requireRole('cliente'), async (
     }
 
     const solFull = getSolicitudFull(solicitud.id);
-    const preference = await createPreference({ solicitud: solFull, oferta, pagoId: pago.id });
+    const checkout = await createCheckout({ solicitud: solFull, oferta, pagoId: pago.id });
 
     db.prepare('UPDATE pagos SET mp_preference_id = ? WHERE id = ?')
-      .run(preference.id, pago.id);
+      .run(checkout.id, pago.id);
     db.prepare(`UPDATE solicitudes SET estado = ? WHERE id = ?`)
       .run(ESTADOS.PAGO_PENDIENTE, solicitud.id);
 
-    const checkoutUrl = preference.init_point || preference.sandbox_init_point;
-    res.json({ pago, checkoutUrl, publicKey: config.mercadopago.publicKey, simulated: !!preference.simulated });
+    res.json({
+      pago,
+      checkoutUrl: checkout.checkoutUrl,
+      provider: checkout.provider,
+      simulated: checkout.simulated,
+      publicKey: config.mercadopago.publicKey
+    });
   } catch (err) {
     console.error('[pagos]', err);
     res.status(500).json({ error: err.message || 'Error al crear pago' });
@@ -113,8 +119,8 @@ router.post('/webhook', express.json(), async (req, res) => {
   try {
     const { type, data } = req.body;
     if (type === 'payment' && data?.id) {
-      const payment = await getPayment(data.id);
-      if (payment?.external_reference && payment.status === 'approved') {
+      const payment = await verifyExternalPayment('mercadopago', data.id);
+      if (payment?.external_reference) {
         markPaid(Number(payment.external_reference), String(data.id));
       }
     }
@@ -123,6 +129,62 @@ router.post('/webhook', express.json(), async (req, res) => {
     console.error('[webhook MP]', err);
     res.status(200).send('OK');
   }
+});
+
+router.post('/khipu/webhook', express.urlencoded({ extended: true }), express.json(), async (req, res) => {
+  try {
+    const body = req.body || {};
+    const notificationToken = req.query.notification_token || body.notification_token;
+    const apiVersion = req.query.api_version || body.api_version;
+
+    if (notificationToken && apiVersion === '1.3') {
+      const payment = await khipu.getPayment(notificationToken);
+      if (khipu.isPaymentDone(payment) && payment.transaction_id) {
+        markPaid(Number(payment.transaction_id), payment.payment_id || notificationToken);
+      }
+      return res.status(200).send('OK');
+    }
+
+    const pagoId = body.transaction_id ? Number(body.transaction_id) : null;
+    const paymentId = body.payment_id;
+
+    if (pagoId && paymentId) {
+      markPaid(pagoId, paymentId);
+      return res.status(200).send('OK');
+    }
+
+    if (paymentId) {
+      const payment = await khipu.getPayment(paymentId);
+      if (khipu.isPaymentDone(payment) && payment.transaction_id) {
+        markPaid(Number(payment.transaction_id), paymentId);
+      }
+    }
+    res.status(200).send('OK');
+  } catch (err) {
+    console.error('[webhook Khipu]', err);
+    res.status(200).send('OK');
+  }
+});
+
+router.get('/estado/:pagoId', authRequired, requireRole('cliente'), async (req, res) => {
+  const pago = db.prepare('SELECT * FROM pagos WHERE id = ? AND cliente_id = ?')
+    .get(req.params.pagoId, req.user.id);
+  if (!pago) return res.status(404).json({ error: 'Pago no encontrado' });
+
+  if (pago.estado === 'pendiente' && pago.mp_preference_id && config.paymentProvider === 'khipu') {
+    try {
+      const payment = await khipu.getPayment(pago.mp_preference_id);
+      if (khipu.isPaymentDone(payment)) {
+        markPaid(pago.id, payment.payment_id || pago.mp_preference_id);
+        const updated = db.prepare('SELECT * FROM pagos WHERE id = ?').get(pago.id);
+        return res.json({ pago: updated });
+      }
+    } catch (err) {
+      console.error('[pagos/estado]', err.message);
+    }
+  }
+
+  res.json({ pago });
 });
 
 router.post('/confirmar-entrega/:solicitudId', authRequired, requireRole('cliente'), (req, res) => {

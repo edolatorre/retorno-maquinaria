@@ -16,6 +16,13 @@ module.exports = {
   appUrl,
   comisionPct: Number(process.env.COMISION_PCT) || 12,
   autoConfirmHours: Number(process.env.AUTO_CONFIRM_HOURS) || 24,
+  paymentProvider: (process.env.PAYMENT_PROVIDER || 'khipu').toLowerCase(),
+  khipu: {
+    apiKey: process.env.KHIPU_API_KEY || '',
+    receiverId: process.env.KHIPU_RECEIVER_ID || '',
+    secret: process.env.KHIPU_SECRET || '',
+    mode: process.env.KHIPU_MODE || 'development'
+  },
   mercadopago: {
     accessToken: process.env.MP_ACCESS_TOKEN || '',
     publicKey: process.env.MP_PUBLIC_KEY || '',

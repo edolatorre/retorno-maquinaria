@@ -103,6 +103,46 @@ https://retorno-maquinaria.onrender.com
 
 ---
 
+## Pagos con Khipu (modo prueba)
+
+La app usa **Khipu** por defecto (`PAYMENT_PROVIDER=khipu`). Sin credenciales corre en **modo simulado** (página `/app/pago-simulado.html`).
+
+### 1. Crear cuenta de cobro desarrollador
+
+1. Regístrate en [khipu.com](https://khipu.com/user/register)
+2. Perfil → **Opciones de desarrollador** → activar modo desarrollador
+3. Crear **cuenta de cobro en modo desarrollador**
+4. En la cuenta → **Integrar Khipu en tu sitio** → copiar **API Key** (v3)
+
+Los pagos de prueba solo funcionan con **bancos de prueba** de Khipu (sin dinero real).
+
+### 2. Variables en Render
+
+```
+PAYMENT_PROVIDER=khipu
+KHIPU_API_KEY=tu-api-key-desarrollador
+KHIPU_MODE=development
+SITE_URL=https://retorno-maquinaria.onrender.com
+APP_URL=https://retorno-maquinaria.onrender.com/app
+```
+
+Alternativa con ID + secret (Basic auth):
+
+```
+KHIPU_RECEIVER_ID=123456
+KHIPU_SECRET=tu-secret
+```
+
+Khipu notificará pagos a: `https://tu-dominio/api/pagos/khipu/webhook`
+
+### 3. Pasar a producción
+
+Crea una cuenta de cobro **de producción** en Khipu, reemplaza las credenciales y cambia `KHIPU_MODE=production`.
+
+Para volver a MercadoPago: `PAYMENT_PROVIDER=mercadopago` + credenciales `MP_*`.
+
+---
+
 ## Correos en producción
 
 Para que lleguen emails reales al recibir ofertas, agrega en Render → Environment:

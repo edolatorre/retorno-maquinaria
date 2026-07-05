@@ -64,7 +64,12 @@ async function loadSolicitudDetail() {
 
   const user = getUser();
   const alertEl = document.getElementById('alert');
-  if (params.get('pago') === 'ok') showAlert(alertEl, '¡Pago confirmado! El transportista puede iniciar el retiro.', 'success');
+  if (params.get('pago') === 'ok') {
+    showAlert(alertEl, 'Estamos verificando tu pago con Khipu. Puede tardar unos segundos.', 'success');
+  }
+  if (params.get('pago') === 'cancel') {
+    showAlert(alertEl, 'Pago cancelado. Puedes intentarlo de nuevo cuando quieras.');
+  }
 
   try {
     const data = await api(`/solicitudes/${id}`);
@@ -86,6 +91,9 @@ async function loadSolicitudDetail() {
     if (user.rol === 'cliente') {
       renderOfertasCliente(ofertas, solicitud, comisionPct);
       renderPagoSection(solicitud, pago, comisionPct);
+      if (params.get('pago') === 'ok' && pago?.estado === 'pendiente' && pago.id) {
+        pollPagoEstado(pago.id, alertEl);
+      }
       if (solicitud.estado === 'entrega_reportada') {
         document.getElementById('confirmar-section').style.display = 'block';
         document.getElementById('auto-confirm-info').textContent = solicitud.auto_confirm_at
@@ -223,13 +231,38 @@ function renderPagoSection(solicitud, pago, comisionPct) {
     el.innerHTML = `<div class="form-card" style="margin-top:1rem;">
       <h3>💳 Pagar traslado</h3>
       <p>Debes pagar antes de que el transportista retire la máquina. Comisión plataforma: ${comisionPct}%</p>
-      <button id="btn-pagar-mp" class="btn btn-primary" style="margin-top:1rem;">Pagar con MercadoPago</button>
+      <p style="color:var(--muted);font-size:0.85rem;margin-top:0.5rem;">Pago seguro con transferencia bancaria vía Khipu.</p>
+      <button id="btn-pagar" class="btn btn-primary" style="margin-top:1rem;">Pagar con Khipu</button>
     </div>`;
-    document.getElementById('btn-pagar-mp').onclick = async () => {
-      const { checkoutUrl, simulated } = await api(`/pagos/crear/${solicitud.id}`, { method: 'POST' });
-      window.location.href = checkoutUrl;
+    document.getElementById('btn-pagar').onclick = async () => {
+      const btn = document.getElementById('btn-pagar');
+      btn.disabled = true;
+      btn.textContent = 'Redirigiendo a Khipu…';
+      try {
+        const { checkoutUrl } = await api(`/pagos/crear/${solicitud.id}`, { method: 'POST' });
+        window.location.href = checkoutUrl;
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Pagar con Khipu';
+        showAlert(document.getElementById('alert'), err.message);
+      }
     };
   }
+}
+
+async function pollPagoEstado(pagoId, alertEl, attempts = 12) {
+  for (let i = 0; i < attempts; i++) {
+    await new Promise(r => setTimeout(r, 5000));
+    try {
+      const { pago } = await api(`/pagos/estado/${pagoId}`);
+      if (pago?.estado === 'retenido') {
+        showAlert(alertEl, '¡Pago confirmado! El transportista puede iniciar el retiro.', 'success');
+        setTimeout(() => location.reload(), 1500);
+        return;
+      }
+    } catch (_) {}
+  }
+  showAlert(alertEl, 'El pago sigue en verificación. Recarga la página en unos minutos o contacta soporte.');
 }
 
 function bindReporteForm(formId, path, alertEl) {
